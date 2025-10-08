@@ -15,14 +15,14 @@ const taskModelSchema = new mongoose.Schema({
         ref: "TeamModel",
         required: true
     },
-    userOwner: {
+    userOwner: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserOwnerModel",
         required: true
-    },
-    tags: {
-        type: [String]
-    },
+    }],
+    tags: [{
+        type: String
+    }],
     timeToComplete: {
         type: Number
     },
@@ -40,7 +40,7 @@ const taskModelSchema = new mongoose.Schema({
     }
 });
 
-taskSchema.pre('save', function (next) {
+taskModelSchema.pre('save', function (next) {
  this.updatedAt = Date.now();
  next();
 });
