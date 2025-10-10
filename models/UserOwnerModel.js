@@ -9,6 +9,10 @@ const userOwnerModelSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true
+    },
+    teamName: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TeamModel"
     }
 });
 
