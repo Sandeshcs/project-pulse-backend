@@ -6,13 +6,23 @@ connectToDb();
 const Task = require("./models/TaskModel");
 const Project = require("./models/ProjectModel");
 const Team = require("./models/TeamModel");
-const UserOwner = require("./models/UserOwnerModel");
-const Tag = require("./models/TagsModel");
+const TeamMember = require("./models/TeamMemberModel");
 
 //Setting up express.
 const express = require("express");
 const app = express();
 app.use(express.json());
+
+//creating server.
+const PORT = 1000;
+app.listen(PORT, () => {
+    console.log(`server is running on ${PORT}`);
+});
+
+//initial api message.
+app.get('/', (req, res) => {
+    res.send(`Hi this is TASK QUEUE api...`);
+});
 
 //Setting up cors.
 const cors = require("cors");
@@ -42,7 +52,7 @@ app.post('/tasks', async (req, res) => {
         if(newTaskData){
             res.status(201).json({
                 message: "New task created successfully.",
-                data: newlyTaskData
+                data: newTaskData
             });
         }else{
             res.status(400).json({
@@ -53,7 +63,7 @@ app.post('/tasks', async (req, res) => {
     catch(error){
         res.status(500).json({
             message: "Internal server error while creating new task.",
-            error: error
+            error: `${error.name} \n ${error.message} \n ${error.details} \n ${error.stack}`
         });
     }
 });
@@ -61,7 +71,7 @@ app.post('/tasks', async (req, res) => {
 //Get api to fetch all tasks.
 const getAllTasks = async () => {
     try{
-        const foundAllTasks = new Task.find();
+        const foundAllTasks = await Task.find().populate("projectName").populate("teamName").populate("teamMember");
         return foundAllTasks;
     } 
     catch(error) {
@@ -95,9 +105,8 @@ app.get('/tasks', async (req, res) => {
 //Update api to update a task by id.
 const updateTaskById = async (taskDataToUpdate, taskToUpdateId) => {
     try{
-        const taskUpdated = new Task.findByIdAndUpdate(taskToUpdateId, taskDataToUpdate, {new: true});
-        const taskUpdatedIsSaved = await taskUpdated.save();
-        return taskUpdatedIsSaved;
+        const taskUpdated = await Task.findByIdAndUpdate(taskToUpdateId, taskDataToUpdate, {new: true});
+        return taskUpdated;
     } 
     catch(error) {
         console.log(`Error occured while updating a task by id: \n${error}`);
@@ -128,9 +137,9 @@ app.post('/tasks/:taskId', async (req, res) => {
 })
 
 //Delete api to delete a task by id.
-const deleteTaskById = async (taskToUpdateId) => {
+const deleteTaskById = async (taskToDeleteId) => {
     try{
-        const taskDeleted = new Task.findOneAndUpdate(taskToUpdateId);
+        const taskDeleted = await Task.findByIdAndDelete(taskToDeleteId);
         return taskDeleted;
     } 
     catch(error) {
@@ -200,7 +209,7 @@ app.post('/projects', async (req, res) => {
 //Get api to fetch all projects.
 const getAllProjects = async () => {
     try{
-        const foundAllProjects = new Project.find();
+        const foundAllProjects = await Project.find();
         return foundAllProjects;
     } 
     catch(error) {
@@ -234,9 +243,8 @@ app.get('/projects', async (req, res) => {
 //Update api to update a project by id.
 const updateProjectById = async (projectToUpdateId, projectDataToUpdate) => {
     try{
-        const projectUpdated = new Project.findByIdAndUpdate(projectToUpdateId, projectDataToUpdate, {new: true});
-        const projectUpdatedIsSaved = await projectUpdated.save();
-        return projectUpdatedIsSaved;
+        const projectUpdated = await Project.findByIdAndUpdate(projectToUpdateId, projectDataToUpdate, {new: true});
+        return projectUpdated;
     } 
     catch(error) {
         console.log(`Error occured while updating a project by id: \n${error}`);
@@ -267,9 +275,9 @@ app.post('/projects/:projectId', async (req, res) => {
 })
 
 //Delete api to delete a project by id.
-const deleteProjectById = async (projectIdToUpdate) => {
+const deleteProjectById = async (projectIdToDelete) => {
     try{
-        const projectDeleted = new Project.findOneAndUpdate(projectIdToUpdate);
+        const projectDeleted = await Project.findByIdAndDelete(projectIdToDelete);
         return projectDeleted;
     } 
     catch(error) {
@@ -339,7 +347,7 @@ app.post('/teams', async (req, res) => {
 //Get api to fetch all Teams.
 const getAllTeams = async () => {
     try{
-        const foundAllTeams = new Team.find();
+        const foundAllTeams = await Team.find();
         return foundAllTeams;
     } 
     catch(error) {
@@ -373,9 +381,8 @@ app.get('/teams', async (req, res) => {
 //Update api to update a Team by id.
 const updateTeamById = async (teamToUpdateId, teamDataToUpdate) => {
     try{
-        const teamUpdated = new Team.findByIdAndUpdate(teamToUpdateId, teamDataToUpdate, {new: true});
-        const teamUpdatedIsSaved = await teamUpdated.save();
-        return teamUpdatedIsSaved;
+        const teamUpdated = await Team.findByIdAndUpdate(teamToUpdateId, teamDataToUpdate, {new: true});
+        return teamUpdated;
     } 
     catch(error) {
         console.log(`Error occured while updating a Team by id: \n${error}`);
@@ -406,9 +413,9 @@ app.post('/teams/:teamId', async (req, res) => {
 })
 
 //Delete api to delete a Team by id.
-const deleteTeamById = async (teamIdToUpdate) => {
+const deleteTeamById = async (teamIdToDelete) => {
     try{
-        const teamDeleted = new Team.findOneAndUpdate(teamIdToUpdate);
+        const teamDeleted = await Team.findByIdAndDelete(teamIdToDelete);
         return teamDeleted;
     } 
     catch(error) {
@@ -443,7 +450,7 @@ app.delete('/teams/:teamId', async (req, res) => {
 //Post api to create new member.
 const createNewMember = async (memberDataToCreate) => {
     try{
-        const newMemberCreated = new UserOwner(memberDataToCreate);
+        const newMemberCreated = new TeamMember(memberDataToCreate);
         const newMemberIsSaved = await newMemberCreated.save();
         return newMemberIsSaved;
     } 
@@ -478,7 +485,7 @@ app.post('/members', async (req, res) => {
 //Get api to fetch all members.
 const getAllMembers = async () => {
     try{
-        const foundAllMembers = new UserOwner.find();
+        const foundAllMembers = await TeamMember.find().populate("teamDetails");
         return foundAllMembers;
     } 
     catch(error) {
@@ -512,9 +519,8 @@ app.get('/members', async (req, res) => {
 //Update api to update a member by id.
 const updateMemberById = async (memberToUpdateId, memberDataToUpdate) => {
     try{
-        const memberUpdated = new UserOwner.findByIdAndUpdate(memberToUpdateId, memberDataToUpdate, {new: true});
-        const memberUpdatedIsSaved = await memberUpdated.save();
-        return memberUpdatedIsSaved;
+        const memberUpdated = await TeamMember.findByIdAndUpdate(memberToUpdateId, memberDataToUpdate, {new: true}).populate("teamDetails");
+        return memberUpdated;
     } 
     catch(error) {
         console.log(`Error occured while updating a member by id: \n${error}`);
@@ -545,9 +551,9 @@ app.post('/members/:memberId', async (req, res) => {
 })
 
 //Delete api to delete a member by id.
-const deleteMemberById = async (memberIdToUpdate) => {
+const deleteMemberById = async (memberIdToDelete) => {
     try{
-        const memberDeleted = new UserOwner.findOneAndUpdate(memberIdToUpdate);
+        const memberDeleted = await TeamMember.findByIdAndDelete(memberIdToDelete).populate("teamDetails");
         return memberDeleted;
     } 
     catch(error) {
