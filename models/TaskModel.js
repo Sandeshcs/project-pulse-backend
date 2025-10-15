@@ -1,5 +1,7 @@
+//importing mongoose.
 const mongoose = require("mongoose");
 
+//using mongoose creating schema. 
 const taskModelSchema = new mongoose.Schema({
     taskName: {
         type: String,
@@ -7,21 +9,22 @@ const taskModelSchema = new mongoose.Schema({
     },
     projectName: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "ProjectModel",
+        ref: "Project",
         required: true
     },
     teamName: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "TeamModel",
+        ref: "Team",
         required: true
     },
-    userOwner: [{
+    teamMember: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "UserOwnerModel",
+        ref: "TeamMember",
         required: true
     }],
     tags: [{
-        type: String
+        type: String,
+        unique: true
     }],
     timeToComplete: {
         type: Number
@@ -29,6 +32,15 @@ const taskModelSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ["To Do" , "In Progress" , "Completed" , "Blocked"]
+    },
+    priority: {
+        type: String,
+        enum: ["Low", "Medium", "High"],
+        required: true,
+        default: "Low"
+    },
+    dueDate: {
+        type: Date
     },
     createdAt: {
         type: Date, 
@@ -40,10 +52,14 @@ const taskModelSchema = new mongoose.Schema({
     }
 });
 
+//middleware to update date at updatedAt field.
 taskModelSchema.pre('save', function (next) {
  this.updatedAt = Date.now();
  next();
 });
 
+//model creation.
 const Task = mongoose.model("Task", taskModelSchema);
+
+//exporting as module to import and use to do crud op.
 module.exports = Task;
