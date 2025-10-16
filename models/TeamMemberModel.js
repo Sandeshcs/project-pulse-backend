@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userOwnerModelSchema = new mongoose.Schema({
+const teamMemberModelSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -10,12 +10,12 @@ const userOwnerModelSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    teamName: {
+    teamDetails: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "TeamModel"
+        ref: "Team"
     }
 });
 
-const UserOwner = mongoose.model("UserOwner", userOwnerModelSchema);
+const TeamMember = mongoose.model("TeamMember", teamMemberModelSchema);
 
-module.exports = UserOwner;
+module.exports = TeamMember;
